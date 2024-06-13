@@ -25,7 +25,6 @@ public class CoroutineManager : MonoBehaviour
 
     public IEnumerator WaitAnimationCoroutine(string animationName, Animator animator)
     {
-        // Wait until the animation has finished playing
         while (animator.GetCurrentAnimatorStateInfo(0).IsName(animationName) &&
                animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
         {
