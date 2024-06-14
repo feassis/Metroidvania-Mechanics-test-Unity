@@ -20,9 +20,12 @@ public class WaterPriestess : MonoBehaviour
     [SerializeField] private float dodgeDuration = 0.8f;
     [SerializeField] private float surfVelocity = 10f;
     [SerializeField] private float surfDuration = 2f;
+    [SerializeField] private float maxFallVelocity = -40f;
     private float xMovementInput = 0;
     private bool isGoingLeft = false;
     private bool isJumping = false;
+    private bool isJumpButtonDown = false;
+    private bool isTryingToSprint = false;
     private float jumpTimeCounter = 0f;
     private bool isTouchingWall = false;
     private bool isDodging = false;
@@ -40,6 +43,9 @@ public class WaterPriestess : MonoBehaviour
     [SerializeField] private float airAttackCooldown = 2f;
     private bool isAirAttacking = false;
     private bool isAirAttackOnCooldown = false;
+    public Action BasicAttackStatusChanged;
+    public Action SpecialAttackStatusChanged;
+
     [SerializeField] private float spAttackCooldown = 5f;
     private float spAttackCooldownTimer = 0f;
     private bool isSpAttacking = false;
@@ -73,24 +79,27 @@ public class WaterPriestess : MonoBehaviour
 
     private bool CanJump() => IsGrounded() && !isDodging && !isAttacking && !isAirAttacking && !isSpAttacking && !isBlocking;
     private bool CanSurf() => !IsGrounded() && !hasSurfed && !isAttacking && !isAirAttacking && !isSpAttacking;
-    private bool CanGroundAttack() => IsGrounded() && !isAttacking && !isAttackOnCooldown && !isAirAttacking && !isSpAttacking && !isBlocking;
-    private bool CanAirAttack() => !IsGrounded() && !isAirAttacking && !isAirAttackOnCooldown && !isSpAttacking && !isBlocking;
+    public bool CanGroundAttack() => IsGrounded() && !isAttacking && !isAttackOnCooldown && !isAirAttacking && !isSpAttacking && !isBlocking;
+    public bool CanAirAttack() => !IsGrounded() && !isAirAttacking && !isAirAttackOnCooldown && !isSpAttacking && !isBlocking;
 
     private bool CanMove() => !isAttacking && !isAirAttacking && !isSpAttacking && !isBlocking;
 
     private bool CanFlipSprite() => !isAttacking && !isDodging && !isAirAttacking && !isSpAttacking && !isBlocking;
 
-    private bool CanSpAttack() => !isAttacking && !isAirAttacking && IsGrounded() && !isSpAttacking && spAttackCooldownTimer <= 0f && !isBlocking;
+    public bool CanSpAttack() => !isAttacking && !isAirAttacking && IsGrounded() && !isSpAttacking && spAttackCooldownTimer <= 0f && !isBlocking;
 
     private bool IsAnimationLocked() => isDodging || isAttacking || isAirAttacking || isSpAttacking || isBlocking;
 
     private bool CanBlock() => IsGrounded() && !isAttacking && !isAirAttacking && IsGrounded() && !isSpAttacking && !isBlocking;
 
+    public float SpAttackCooldownPercentage() => spAttackCooldownTimer/spAttackCooldown;
     private void Awake()
     {
         input = new PlayerInput();
         input.Movement.Move.performed += OnMovementStarted;
         input.Movement.Move.canceled += OnMovementEnded;
+        input.Movement.Sprint.performed += OnSprintStarted;
+        input.Movement.Sprint.canceled += OnSprintCanceled;
 
         input.Movement.Jump.performed += OnJumpStarted;
         input.Movement.Jump.canceled += OnJumpCanceled;
@@ -100,6 +109,26 @@ public class WaterPriestess : MonoBehaviour
         input.Combat.SpAttack.performed += OnSpAttackPerformed;
         input.Combat.Defend.performed += OnDefendPerformed;
         input.Combat.Defend.canceled+= OnDefendCanceled;
+    }
+
+    private void OnSprintCanceled(UnityEngine.InputSystem.InputAction.CallbackContext context)
+    {
+        isTryingToSprint = false;
+
+        if (isSurfing && !isJumpButtonDown)
+        {
+            isSurfing = false;
+
+            if (surfTimer != null)
+            {
+                StopCoroutine(surfTimer);
+            }
+        }
+    }
+
+    private void OnSprintStarted(UnityEngine.InputSystem.InputAction.CallbackContext context)
+    {
+        isTryingToSprint = true;
     }
 
     private void OnDefendCanceled(UnityEngine.InputSystem.InputAction.CallbackContext context)
@@ -167,6 +196,8 @@ public class WaterPriestess : MonoBehaviour
             StopCoroutine(resetAttackPattern);
         }
 
+        BasicAttackStatusChanged?.Invoke();
+
         switch (attackIndex)
         {
             case 0:
@@ -192,6 +223,7 @@ public class WaterPriestess : MonoBehaviour
     private IEnumerator SpAttackCoroutine()
     {
         isSpAttacking = true;
+        SpecialAttackStatusChanged?.Invoke();
 
         spAttackCooldownTimer = spAttackCooldown;
         rb.velocity = Vector3.zero;
@@ -203,6 +235,7 @@ public class WaterPriestess : MonoBehaviour
         yield return CoroutineManager.Instance.WaitAnimationCoroutine(spAttackAnim, animator);
 
         isSpAttacking = false;
+        SpecialAttackStatusChanged?.Invoke();
     }
 
     private IEnumerator ResetAttackCombo()
@@ -213,6 +246,7 @@ public class WaterPriestess : MonoBehaviour
 
     private void AirAttack()
     {
+        BasicAttackStatusChanged?.Invoke();
         StartCoroutine(AirAttackRoutine());
     }
 
@@ -220,6 +254,7 @@ public class WaterPriestess : MonoBehaviour
     {
         Debug.Log("air attack");
         isAirAttacking = true;
+        BasicAttackStatusChanged?.Invoke();
 
         animator.Play(airAttackAnim);
 
@@ -236,11 +271,14 @@ public class WaterPriestess : MonoBehaviour
         isAirAttackOnCooldown = true;
         yield return new WaitForSeconds(airAttackCooldown);
         isAirAttackOnCooldown = false;
+
+        BasicAttackStatusChanged?.Invoke();
     }
 
     private IEnumerator Attack(string attackAnim)
     {
         isAttacking = true;
+        BasicAttackStatusChanged?.Invoke();
 
         animator.Play(attackAnim);
 
@@ -256,6 +294,8 @@ public class WaterPriestess : MonoBehaviour
         isAttackOnCooldown = false;
 
         resetAttackPattern = StartCoroutine(ResetAttackCombo());
+
+        BasicAttackStatusChanged?.Invoke();
     }
 
     private IEnumerator DodgeRoutine()
@@ -277,6 +317,7 @@ public class WaterPriestess : MonoBehaviour
     {
         isJumping = false;
         isSurfing = false;
+        isJumpButtonDown = false;
 
         if (surfTimer != null)
         {
@@ -286,6 +327,10 @@ public class WaterPriestess : MonoBehaviour
 
     private void OnJumpStarted(UnityEngine.InputSystem.InputAction.CallbackContext context)
     {
+        isJumpButtonDown = true;
+
+        BasicAttackStatusChanged?.Invoke();
+
         if (CanJump())
         {
             isJumping = true;
@@ -297,15 +342,22 @@ public class WaterPriestess : MonoBehaviour
 
         if(CanSurf())
         {
-            isSurfing = true;
-
-            if(surfTimer != null)
-            {
-                StopCoroutine(surfTimer);
-            }
-
-            surfTimer = StartCoroutine(SurfTimer());
+            Surf();
+            return;
         }
+    }
+
+    private void Surf()
+    {
+        isSurfing = true;
+        hasSurfed = true;
+
+        if (surfTimer != null)
+        {
+            StopCoroutine(surfTimer);
+        }
+
+        surfTimer = StartCoroutine(SurfTimer());
     }
 
     private void OnMovementEnded(UnityEngine.InputSystem.InputAction.CallbackContext context)
@@ -347,6 +399,12 @@ public class WaterPriestess : MonoBehaviour
         if(spAttackCooldownTimer > 0)
         {
             spAttackCooldownTimer = Mathf.Clamp(spAttackCooldownTimer - Time.deltaTime, 0, float.MaxValue);
+            SpecialAttackStatusChanged?.Invoke();
+        }
+
+        if(isTryingToSprint && !IsGrounded() && !hasSurfed)
+        {
+            Surf();
         }
 
         if (IsGrounded())
@@ -411,6 +469,11 @@ public class WaterPriestess : MonoBehaviour
             return;
         }
 
+        if (isTryingToSprint && IsGrounded())
+        {
+            animator.Play(surfAnim);
+            return;
+        }
 
         if(rb.velocity.y > 0 && !IsGrounded())
         {
@@ -451,7 +514,7 @@ public class WaterPriestess : MonoBehaviour
         }
     }
 
-    private bool IsGrounded()
+    public bool IsGrounded()
     {
         // Implementação simples de detecção de chão, pode ser melhorada
         return Physics2D.Raycast(transform.position, Vector2.down, 0.1f, LayerMask.GetMask("Ground"));
@@ -521,6 +584,10 @@ public class WaterPriestess : MonoBehaviour
         {
             currentVelocity.x = (isGoingLeft ? Vector2.left * dodgeVelocity : Vector2.right * dodgeVelocity).x;
         }
+        else if (isTryingToSprint && IsGrounded())
+        {
+            currentVelocity.x = xMovementInput * surfVelocity;
+        }
         else if (isSurfing)
         {
             currentVelocity.x = xMovementInput * surfVelocity;
@@ -530,6 +597,11 @@ public class WaterPriestess : MonoBehaviour
         else
         {
             currentVelocity.x = xMovementInput * moveSpeedXAxis * (IsGrounded() ? 1 : airModifierXAxis);
+        }
+
+        if (currentVelocity.y < maxFallVelocity)
+        {
+            currentVelocity.y = maxFallVelocity;
         }
 
         rb.gravityScale = gravityScale;
