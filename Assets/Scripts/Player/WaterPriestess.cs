@@ -18,6 +18,7 @@ public class WaterPriestess : MonoBehaviour
     [SerializeField] private float slideSpeed = 2f;
     [SerializeField] private float dodgeVelocity = 30f;
     [SerializeField] private float dodgeDuration = 0.8f;
+    [SerializeField] private float dodgeCooldown = 0.5f;
     [SerializeField] private float surfVelocity = 10f;
     [SerializeField] private float surfDuration = 2f;
     [SerializeField] private float maxFallVelocity = -40f;
@@ -29,18 +30,21 @@ public class WaterPriestess : MonoBehaviour
     private float jumpTimeCounter = 0f;
     private bool isTouchingWall = false;
     private bool isDodging = false;
+    private bool isDodgingCooldown = false;
     private bool hasSurfed = false;
     private bool isSurfing = false;
+    public Action OnDodgeStatusChanged;
 
     [Header("Attack Config")]
     [SerializeField] private float attackCooldown = 0.04f;
     [SerializeField] private float attackReset = 1.2f;
-    [SerializeField] private float firstAttackDamage = 1f;
     private int attackIndex = 0;
     private bool isAttacking = false;
     private bool isAttackOnCooldown = false;
     private Coroutine resetAttackPattern;
     [SerializeField] private float airAttackCooldown = 2f;
+    [SerializeField] private CharacterAnimationTriggerManager triggerManager;
+    [SerializeField] private EnemyDetectionTrigger enemyDetectionTrigger;
     private bool isAirAttacking = false;
     private bool isAirAttackOnCooldown = false;
     public Action BasicAttackStatusChanged;
@@ -50,6 +54,11 @@ public class WaterPriestess : MonoBehaviour
     private float spAttackCooldownTimer = 0f;
     private bool isSpAttacking = false;
     private bool isBlocking = false;
+    [SerializeField] private List<float> attack1TickDmg;
+    [SerializeField] private List<float> attack2TickDmg;
+    [SerializeField] private List<float> attack3TickDmg;
+    [SerializeField] private List<float> spAttackTickDmg;
+    [SerializeField] private List<float> airAttackTickDmg;
 
     [Header("Collision Config")]
     [SerializeField] private List<Transform> leftWallRayCasters = new List<Transform>();
@@ -93,6 +102,9 @@ public class WaterPriestess : MonoBehaviour
     private bool CanBlock() => IsGrounded() && !isAttacking && !isAirAttacking && IsGrounded() && !isSpAttacking && !isBlocking;
 
     public float SpAttackCooldownPercentage() => spAttackCooldownTimer/spAttackCooldown;
+
+    public bool CanDodge() => !isDodging && !isDodgingCooldown;
+
     private void Awake()
     {
         input = new PlayerInput();
@@ -109,6 +121,12 @@ public class WaterPriestess : MonoBehaviour
         input.Combat.SpAttack.performed += OnSpAttackPerformed;
         input.Combat.Defend.performed += OnDefendPerformed;
         input.Combat.Defend.canceled+= OnDefendCanceled;
+
+        triggerManager.OnFirstAttackTringger += ProcessAttack1;
+        triggerManager.OnSecondAttackTringger += ProcessAttack2;
+        triggerManager.OnThirdAttackTringger += ProcessAttack3;
+        triggerManager.OnSpecialAttackTrigger += ProcessSpAttack;
+        triggerManager.OnAirAttackTrigger += ProcessAirAttack;
     }
 
     private void OnSprintCanceled(UnityEngine.InputSystem.InputAction.CallbackContext context)
@@ -186,6 +204,11 @@ public class WaterPriestess : MonoBehaviour
 
     private void OnDodgePerformed(UnityEngine.InputSystem.InputAction.CallbackContext context)
     {
+        if (!CanDodge())
+        {
+            return;
+        }
+
         StartCoroutine(DodgeRoutine());
     }
 
@@ -212,6 +235,46 @@ public class WaterPriestess : MonoBehaviour
                 StartCoroutine(Attack(attack3Anim));
                 attackIndex = 0;
                 break;
+        }
+    }
+
+    public void ProcessAttack1(int tickNum)
+    {
+        foreach (var enemy in enemyDetectionTrigger.GetEnemies())
+        {
+            enemy.Damage(attack1TickDmg[tickNum - 1]);
+        }
+    }
+    
+    public void ProcessAttack2(int tickNum)
+    {
+        foreach (var enemy in enemyDetectionTrigger.GetEnemies())
+        {
+            enemy.Damage(attack2TickDmg[tickNum - 1]);
+        }
+    }
+
+    public void ProcessAttack3(int tickNum)
+    {
+        foreach (var enemy in enemyDetectionTrigger.GetEnemies())
+        {
+            enemy.Damage(attack3TickDmg[tickNum - 1]);
+        }
+    }
+
+    public void ProcessSpAttack(int tickNum)
+    {
+        foreach (var enemy in enemyDetectionTrigger.GetEnemies())
+        {
+            enemy.Damage(spAttackTickDmg[tickNum - 1]);
+        }
+    }
+
+    public void ProcessAirAttack(int tickNum)
+    {
+        foreach (var enemy in enemyDetectionTrigger.GetEnemies())
+        {
+            enemy.Damage(airAttackTickDmg[tickNum - 1]);
         }
     }
 
@@ -301,9 +364,16 @@ public class WaterPriestess : MonoBehaviour
     private IEnumerator DodgeRoutine()
     {
         isDodging=true;
+        OnDodgeStatusChanged?.Invoke();
         animator.Play(dodgeAnim);
         yield return new WaitForSeconds(dodgeDuration);
         isDodging = false;
+
+        isDodgingCooldown = true;
+        yield return new WaitForSeconds(dodgeCooldown);
+        isDodgingCooldown = false;
+
+        OnDodgeStatusChanged?.Invoke();
     }
 
     private IEnumerator SurfTimer()
@@ -506,11 +576,11 @@ public class WaterPriestess : MonoBehaviour
 
         if(isGoingLeft)
         {
-            characterSprite.flipX = true;
+            characterSprite.transform.localScale = new Vector3(-1, 1, 1);
         }
         else
         {
-            characterSprite.flipX = false;
+            characterSprite.transform.localScale = new Vector3(1, 1, 1);
         }
     }
 
