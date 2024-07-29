@@ -9,6 +9,7 @@ public class WaterPriestess : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer characterSprite;
+    [SerializeField] private Health health;
 
     [Header("Movement Config")]
     [SerializeField] private float moveSpeedXAxis = 10;
@@ -127,6 +128,42 @@ public class WaterPriestess : MonoBehaviour
         triggerManager.OnThirdAttackTringger += ProcessAttack3;
         triggerManager.OnSpecialAttackTrigger += ProcessSpAttack;
         triggerManager.OnAirAttackTrigger += ProcessAirAttack;
+
+        health.OnDamaged += OnDamageTaken;
+        health.OnHealed += OnHealed;
+        health.OnDeath += OnDeath;
+
+        health.Initialize();
+    }
+
+    private void Start()
+    {
+       PlayerHealthUI.Instance.Setup(health);
+    }
+
+    private void OnDeath()
+    {
+        
+    }
+
+    private void OnHealed(float currentHP, float maxHP, float amount)
+    {
+        
+    }
+
+    private void OnDamageTaken(float currentHP, float maxHP, float damage)
+    {
+        
+    }
+
+    public void Damage(float damage)
+    {
+        health.Damage(damage);
+    }
+
+    public void Heal(float damage)
+    {
+        health.Heal(damage);
     }
 
     private void OnSprintCanceled(UnityEngine.InputSystem.InputAction.CallbackContext context)

@@ -8,10 +8,12 @@ public class EnemySimpliedAIBase : MonoBehaviour, IDamageble
     [SerializeField] private DetectPlayerTrigger detection;
     [SerializeField] private float speed;
     [SerializeField] private Animator animator;
+    [SerializeField] private EnemyAnimationEvents events;
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private SpriteRenderer sprite;
     [SerializeField] private HealthChangePopUp healthChangePopUpPrebab;
     [SerializeField] private Transform popupSpawnPoint;
+    [SerializeField] private Health health;
 
     [Header("Movement Setup")]
     [SerializeField] private float timeToLoseTrackOfPlayer = 3f;
@@ -20,6 +22,7 @@ public class EnemySimpliedAIBase : MonoBehaviour, IDamageble
 
     [Header("Attack Setup")]
     [SerializeField] private float attackCooldown = 2f;
+    [SerializeField] private float damage = 10f;
     
     private bool isFacingRight = true;
     private const string walkAnim = "walk";
@@ -36,6 +39,14 @@ public class EnemySimpliedAIBase : MonoBehaviour, IDamageble
     private void Start()
     {
         detection.playersOnRangeChanged += DetectPlayerTrigger_PlayerOnRangeChanged;
+        health.OnDamaged += OnDamageTaken;
+        health.OnHealed += OnHealed;
+        events.OnAttackHit += OnAttackHit;
+    }
+
+    private void OnAttackHit()
+    {
+        AttackHit();
     }
 
     private void Update()
@@ -150,6 +161,14 @@ public class EnemySimpliedAIBase : MonoBehaviour, IDamageble
         rb.velocity = new Vector2(xDir * speed, currentVel.y);
     }
 
+    public void AttackHit()
+    {
+        foreach(WaterPriestess player in detection.GetWaterPriestesses())
+        {
+            player.Damage(damage);
+        }
+    }
+
     private void DetectPlayerTrigger_PlayerOnRangeChanged(List<WaterPriestess> list)
     {
         if(list.Count <= 0)
@@ -199,12 +218,22 @@ public class EnemySimpliedAIBase : MonoBehaviour, IDamageble
 
     public void Damage(float damage)
     {
+        health.Damage(damage);
+    }
+
+    private void OnDamageTaken(float currentHP, float maxHP, float damage)
+    {
         HealthChangePopUp popup = Instantiate<HealthChangePopUp>(healthChangePopUpPrebab, popupSpawnPoint);
         popup.Setup(-damage);
     }
 
     public void Heal(float amount)
     {
-        Debug.Log($"{gameObject.name} received {amount} heal");
+        health.Heal(amount);
+    }
+
+    private void OnHealed(float currentHP, float maxHP, float amount)
+    {
+
     }
 }

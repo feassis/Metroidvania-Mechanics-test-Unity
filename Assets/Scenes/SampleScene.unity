@@ -1220,6 +1220,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 734658015}
+  - {fileID: 1780534022}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1431,8 +1432,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -60.04007}
+  m_SizeDelta: {x: 0, y: -120.079865}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &751411316
 GameObject:
@@ -4443,6 +4444,83 @@ Transform:
   - {fileID: 1425011147}
   m_Father: {fileID: 1154446202}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1780534021
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1780534022}
+  - component: {fileID: 1780534024}
+  - component: {fileID: 1780534023}
+  m_Layer: 0
+  m_Name: PlayerHealth
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1780534022
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1780534021}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 626602722}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 56.30005, y: -59.30005}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1780534023
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1780534021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!114 &1780534024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1780534021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8099ed8dc0861ed4d84f41e8b60de2f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthPerHeart: 20
+  heartPrefab: {fileID: 3285450820451330542, guid: a0ba1217c3a227d44823e5f0c816a3a0, type: 3}
 --- !u!1 &1791650842
 GameObject:
   m_ObjectHideFlags: 0
@@ -4658,6 +4736,7 @@ GameObject:
   - component: {fileID: 1817485750}
   - component: {fileID: 1817485749}
   - component: {fileID: 1817485752}
+  - component: {fileID: 1817485753}
   m_Layer: 7
   m_Name: Water Pristess
   m_TagString: Untagged
@@ -4760,6 +4839,7 @@ MonoBehaviour:
   rb: {fileID: 1817485750}
   animator: {fileID: 375330018}
   characterSprite: {fileID: 375330019}
+  health: {fileID: 1817485753}
   moveSpeedXAxis: 10
   airModifierXAxis: 0.8
   jumpForce: 10
@@ -4827,6 +4907,19 @@ MonoBehaviour:
   - {fileID: 854858461}
   - {fileID: 1011337196}
   - {fileID: 1705195318}
+--- !u!114 &1817485753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1817485748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac02323c160af7e49b89b34be7710f6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHP: 100
 --- !u!1 &1824768394
 GameObject:
   m_ObjectHideFlags: 0
@@ -5066,6 +5159,7 @@ GameObject:
   - component: {fileID: 2956988936720370509}
   - component: {fileID: 9027008819337113917}
   - component: {fileID: 3951301969260499635}
+  - component: {fileID: 9027008819337113918}
   m_Layer: 0
   m_Name: DemonSprite
   m_TagString: Untagged
@@ -5147,6 +5241,7 @@ GameObject:
   - component: {fileID: 8075935665594257263}
   - component: {fileID: 8214845538479112054}
   - component: {fileID: 8345401122092654893}
+  - component: {fileID: 8345401122092654894}
   m_Layer: 8
   m_Name: Enemy
   m_TagString: Untagged
@@ -5169,14 +5264,30 @@ MonoBehaviour:
   detection: {fileID: 1106993879}
   speed: 3
   animator: {fileID: 3951301969260499635}
+  events: {fileID: 9027008819337113918}
   rb: {fileID: 8075935665594257263}
   sprite: {fileID: 9027008819337113917}
   healthChangePopUpPrebab: {fileID: 9143497734275185757, guid: e63eaa186e6f0b04d993ab3164517dde, type: 3}
   popupSpawnPoint: {fileID: 629639045}
+  health: {fileID: 8345401122092654894}
   timeToLoseTrackOfPlayer: 3
   attackDistance: 2.5
   stopMovingDistanceInX: 1.5
   attackCooldown: 2
+  damage: 10
+--- !u!114 &8345401122092654894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8345401122092654892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac02323c160af7e49b89b34be7710f6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHP: 100
 --- !u!1 &8345988171054787595
 GameObject:
   m_ObjectHideFlags: 0
@@ -5245,6 +5356,18 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &9027008819337113918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4119263446227306798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5fff7d44820d9d48a3d8bd327ed4d60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
