@@ -534,6 +534,7 @@ public class WaterPriestess : MonoBehaviour
         
         if (isJumping)
         {
+
             if (jumpTimeCounter > 0)
             {
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
@@ -545,9 +546,12 @@ public class WaterPriestess : MonoBehaviour
             }
         }
 
+       
+
         if (IsTouchingCelling())
         {
-            if(rb.velocity.y > 0)
+            Debug.Log("Touching ceiling");
+            if (rb.velocity.y > 0)
             {
                 rb.velocity = new Vector2(rb.velocity.x, 0);
                 isJumping = false;
